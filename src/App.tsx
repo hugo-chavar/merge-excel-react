@@ -1,3 +1,4 @@
+import { ChangeEvent, useState } from "react";
 import ListGroup from "./components/ListGroup";
 import Button from "./components/Button";
 
@@ -13,12 +14,33 @@ function App() {
     // console.log(item);
   };
 
+  const [file, setFile] = useState<File>();
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleButtonClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files != null) {
+      const selectedFile = event.target.files[0];
+      if (selectedFile.name.endsWith(".txt")) {
+        setFile(selectedFile);
+        setOpenDialog(false);
+      } else {
+        alert("Only .txt files are allowed");
+        setOpenDialog(true);
+      }
+    }
+  };
+
+  // const handleCloseDialog = () => {
+  //   setOpenDialog(false);
+  // };
+
   return (
     <div>
-      <Button
-        color="secondary"
-        onClick={() => console.log("Mi boton clickeado")}
-      >
+      <Button color="secondary" onClick={handleButtonClick}>
         Mi boton
       </Button>
       <ListGroup
@@ -26,6 +48,10 @@ function App() {
         heading="Cities"
         onSelectItem={handleSelectItem}
       />
+      {openDialog && (
+        <input type="file" onChange={handleFileChange} accept=".txt" />
+      )}
+      {file && <p>Selected File: {file.name}</p>}
     </div>
   );
 }

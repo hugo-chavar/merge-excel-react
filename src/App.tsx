@@ -21,7 +21,7 @@ function App() {
   const handleButtonClick = () => {
     if (fileContent) {
       const casesExtractor = new CasesExtractor();
-      const result = casesExtractor.extractCasesFromText(fileContent);
+      const result = casesExtractor.extractCasesFromText(fileContent, -1);
       console.log(result);
     } else {
       console.log("No file selected");

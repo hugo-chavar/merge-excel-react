@@ -23,8 +23,10 @@ class CasesExtractor {
       console.log("Case: ", caseRaw);
       const caseData: any = {};
 
-      const firstLine = caseRaw.split('\n')[0];
+      const firstLine = caseRaw.split('\n')[0].trim();
       console.log("First line: ", firstLine);
+      docketRe.lastIndex = 0;
+      caseDetailsRe.lastIndex = 0;
       const docketMatch = docketRe.exec(`0LT-${firstLine}`);
       caseData['Docket #'] = docketMatch ? docketMatch[1] : '';
 

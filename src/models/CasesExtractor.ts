@@ -34,7 +34,7 @@ class CasesExtractor {
       if (caseDetailsMatch) {
         caseData['Case Title'] = caseDetailsMatch[1].trim().replace(caseData['Docket #'], '').trim();
         caseData['Case Filed'] = caseDetailsMatch[2].trim();
-        caseData['Demand Amount'] = caseDetailsMatch[3].trim();
+        caseData['Demand Amount'] = parseFloat("0" + caseDetailsMatch[3].trim());
         caseData['Case Type'] = caseDetailsMatch[4].trim();
       } else {
         console.log(`\nCase ${idx}: No match for ${JSON.stringify(caseRaw)}`);
@@ -59,6 +59,7 @@ class CasesExtractor {
 
         for (let i = 0; i < 2; i++) {
           let defendantSection = iteration.next().value;
+          if (defendantSection == null) continue;
           while (defendantSection instanceof PlainTiff) {
             defendantSection = iteration.next().value;
           }

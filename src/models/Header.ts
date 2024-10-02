@@ -9,6 +9,7 @@ class Header {
   }
 
   update(): void {
+    this.re.lastIndex = 0;
     const match = this.re.exec(this.lines[2]);
     if (match) {
       this.county = match[1].trim();

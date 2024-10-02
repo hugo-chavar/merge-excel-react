@@ -19,6 +19,7 @@ class Section {
     }
 
     getMatch(pattern: RegexPattern): RegExpExecArray | null {
+        pattern.re.lastIndex = 0;
         return pattern.re.exec(this.lines[pattern.line]);
     }
 

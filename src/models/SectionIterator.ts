@@ -5,14 +5,12 @@ import Section from './Section';
 
 
 class SectionIterator {
-    // private text: string;
     private lines: string[];
     private currentIndex: number;
     private header: Header;
   
     constructor(text: string, header: Header) {
-    //   this.text = text;
-      this.lines = text.split('\n').filter((line) => line.trim());
+      this.lines = text.split(/\r?\n/).map((line) => line.trimEnd()).filter((line) => line).slice(1);
       this.currentIndex = 0;
       this.header = header;
     }
@@ -24,7 +22,6 @@ class SectionIterator {
         const endIndex = currentLineText.indexOf(':', 1);
   
         if (endIndex === -1) {
-          console.log("Current line: ", currentLineText);
           throw new Error('Section not found');
         }
   
@@ -42,12 +39,12 @@ class SectionIterator {
         while (++this.currentIndex < this.lines.length) {
           const currentLineText = this.lines[this.currentIndex];
           if (!currentLineText.slice(0, 14).trim()) {
-            sectionLines.push(currentLineText); // .trim()
+            sectionLines.push(currentLineText);
           } else {
             break;
           }
         }
-  
+
         if (sectionName.includes('PLAINTIFF')) {
           yield new PlainTiff(sectionName, sectionLines, this.header);
         } else {

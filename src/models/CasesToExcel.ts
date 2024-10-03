@@ -67,11 +67,6 @@ class CasesToExcel {
     });
     const buffer = await workbook.xlsx.writeBuffer() as buffer.Buffer;
     return buffer;
-    // return workbook.xlsx.writeBuffer();
-    // Generate Excel file buffer
-    // const buffer = await workbook.xlsx.writeBuffer();
-
-    // return buffer;
   }
 
   async writeExcelFileToFileSystem(fileName: string): Promise<void> {

@@ -2,11 +2,18 @@
 import PlainTiff from './PlainTiff';
 import Header from './Header';
 import SectionIterator from './SectionIterator'
+import Logger from '../utils/logger';
 
 const docketRe: RegExp = /0LT-(\d{6}-\d{2})/g;
 const caseDetailsRe: RegExp = /(.*? VS .*?)\s+(\d{2}\/\d{2}\/\d{2})\s+(\S+)\s+(.+)/g;
 
 class CasesExtractor {
+  private logger: Logger;
+  
+  constructor(logger: Logger) {
+    this.logger = logger;
+  }
+
   extractCasesFromText(text: string, limit: number = 5): any[] {
     const cases: any[] = [];
 
@@ -20,11 +27,11 @@ class CasesExtractor {
       }
 
       const caseRaw = casesRaw[idx];
-      console.log("Case: ", caseRaw);
+      this.logger.log("Case: ", caseRaw);
       const caseData: any = {};
 
       const firstLine = caseRaw.split('\n')[0].trim();
-      console.log("First line: ", firstLine);
+      this.logger.log("First line: ", firstLine);
       docketRe.lastIndex = 0;
       caseDetailsRe.lastIndex = 0;
       const docketMatch = docketRe.exec(`0LT-${firstLine}`);
@@ -37,11 +44,11 @@ class CasesExtractor {
         caseData['Demand Amount'] = parseFloat("0" + caseDetailsMatch[3].trim());
         caseData['Case Type'] = caseDetailsMatch[4].trim();
       } else {
-        console.log(`\nCase ${idx}: No match for ${JSON.stringify(caseRaw)}`);
+        this.logger.log(`\nCase ${idx}: No match for ${JSON.stringify(caseRaw)}`);
       }
 
       try {
-        const iterator = new SectionIterator(caseRaw, header);
+        const iterator = new SectionIterator(caseRaw, header, this.logger);
         const iteration = iterator[Symbol.iterator]();
         const plaintiffSection = iteration.next().value;
         caseData['County'] = plaintiffSection.getCounty();
@@ -77,9 +84,9 @@ class CasesExtractor {
         }
       } catch (error) {
         if (error instanceof Error && error.message === 'Section not found') {
-          console.error('Section not found');
+          throw new Error('Section not found');
         } else {
-          console.error('Unknown error:', error);
+          throw new Error('Unknown error: ' + error);
         }
       }
 

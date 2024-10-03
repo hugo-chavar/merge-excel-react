@@ -1,10 +1,25 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import Button from "./components/Button";
+import DebugModeToggle from "./components/DebugModeToggle";
 import CasesExtractor from "./models/CasesExtractor";
+import Logger from "./utils/logger";
+import useDebugMode from "./utils/hooks";
 
 function App() {
   const [file, setFile] = useState<File>();
   const [fileContent, setFileContent] = useState<string>("");
+  const { debugMode, toggleDebugMode } = useDebugMode();
+
+  const logger = new Logger({
+    updateDebugMode: (callback) => {
+      callback(debugMode);
+    },
+  });
+
+  useEffect(() => {
+    console.log("debugMode updated:", debugMode);
+    logger.update();
+  }, [debugMode]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files != null) {
@@ -20,11 +35,11 @@ function App() {
 
   const handleButtonClick = () => {
     if (fileContent) {
-      const casesExtractor = new CasesExtractor();
+      const casesExtractor = new CasesExtractor(logger);
       const result = casesExtractor.extractCasesFromText(fileContent, -1);
-      console.log(result);
+      logger.log(result);
     } else {
-      console.log("No file selected");
+      logger.log("No file selected");
     }
   };
 
@@ -36,6 +51,10 @@ function App() {
         <Button color="primary" onClick={handleButtonClick}>
           Submit file
         </Button>
+        <DebugModeToggle
+          debugMode={debugMode}
+          toggleDebugMode={toggleDebugMode}
+        />
       </div>
     </div>
   );

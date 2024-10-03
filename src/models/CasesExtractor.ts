@@ -10,6 +10,11 @@ const caseDetailsRe: RegExp = /(.*? VS .*?)\s+(\d{2}\/\d{2}\/\d{2})\s+(\S+)\s+(.
 class CasesExtractor {
   private logger: Logger;
   
+  private progressCallback: (progress: number) => void = (progress) => {
+    // Default implementation
+    console.log(`Progress: ${progress.toFixed(2)}%`);
+  };
+  
   constructor(logger: Logger) {
     this.logger = logger;
   }
@@ -21,10 +26,11 @@ class CasesExtractor {
     const header = new Header(headerRaw.split('\n').filter((line) => line.trim()));
     header.update();
 
-    for (let idx = 0; idx < casesRaw.length; idx++) {
-      if (limit !== -1 && idx >= limit) {
-        break;
-      }
+    this.progressCallback(0); // Initialize progress
+
+    const loopLimit = Math.min(casesRaw.length, limit !== -1 ? limit : Infinity);
+
+    for (let idx = 0; idx < loopLimit; idx++) {
 
       const caseRaw = casesRaw[idx];
       this.logger.log("Case: ", caseRaw);
@@ -88,11 +94,19 @@ class CasesExtractor {
         caseData[`Defendant ${i + 1} Attorney`] = defendantSection.getDefendantAtty();
       }
 
+      
+      this.progressCallback((idx + 1) / loopLimit * 100); // Update progress
 
       cases.push(caseData);
     }
 
+    this.progressCallback(100); // Complete progress
+
     return cases;
+  }
+
+  onProgress(callback: (progress: number) => void) {
+    this.progressCallback = callback;
   }
 }
 

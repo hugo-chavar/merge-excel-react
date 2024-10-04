@@ -11,6 +11,8 @@ function App() {
   const [fileContent, setFileContent] = useState<string>("");
   const { debugMode, toggleDebugMode } = useDebugMode();
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const logger = new Logger({
     updateDebugMode: (callback) => {
@@ -32,6 +34,7 @@ function App() {
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files != null) {
+      setError(false);
       const selectedFile = event.target.files[0];
       setFile(selectedFile);
       const reader = new FileReader();
@@ -44,13 +47,22 @@ function App() {
 
   const handleButtonClick = () => {
     if (fileContent) {
+      setError(false);
       casesExtractor
         .extractCasesFromText(fileContent, -1, handleSetProgress)
         .then((cases) => {
           console.log(cases);
+        })
+        .catch((reason) => {
+          setError(true);
+          setErrorMessage(reason.message);
+          logger.log(reason.message);
         });
     } else {
-      logger.log("No file selected");
+      setError(true);
+      let message = "No file selected";
+      setErrorMessage(message);
+      logger.log(message);
     }
   };
 
@@ -63,6 +75,7 @@ function App() {
         <Button color="primary" onClick={handleButtonClick}>
           Submit file
         </Button>
+        {error && <p>ERROR: {errorMessage}</p>}
         <DebugModeToggle
           debugMode={debugMode}
           toggleDebugMode={toggleDebugMode}

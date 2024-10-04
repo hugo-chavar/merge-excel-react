@@ -34,9 +34,10 @@ class CasesExtractor {
       cases.push(await this.processCase(caseRaw, idx, header));
 
       let newProgress = Math.round((idx + 1) / loopLimit * 100);
-      if (newProgress > oldProgress)
+      if (newProgress > oldProgress) {
         oldProgress = newProgress;
         onProgress(newProgress); // Update progress
+      }
 
       await new Promise(resolve => setTimeout(resolve, 0));
     }

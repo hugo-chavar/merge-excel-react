@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
+import { BsFiletypeXlsx, BsFiletypeTxt } from "react-icons/bs";
 import Button from "./components/Button";
 import DebugModeToggle from "./components/DebugModeToggle";
 import CasesExtractor from "./models/CasesExtractor";
@@ -72,7 +73,11 @@ function App() {
         <ProgressBar progress={progress} />
         <input type="file" onChange={handleFileChange} accept=".txt" />
         {file && <p>Selected File: {file.name}</p>}
-        <Button color="primary" onClick={handleButtonClick}>
+        <Button
+          color="primary"
+          onClick={handleButtonClick}
+          icon={<BsFiletypeTxt />}
+        >
           Submit file
         </Button>
         {error && <p>ERROR: {errorMessage}</p>}
@@ -80,6 +85,14 @@ function App() {
           debugMode={debugMode}
           toggleDebugMode={toggleDebugMode}
         />
+        <Button
+          color="primary"
+          onClick={handleButtonClick}
+          disabled={true}
+          icon={<BsFiletypeXlsx />}
+        >
+          Download Excel file
+        </Button>
       </div>
     </div>
   );

@@ -4,11 +4,13 @@ import DebugModeToggle from "./components/DebugModeToggle";
 import CasesExtractor from "./models/CasesExtractor";
 import Logger from "./utils/logger";
 import useDebugMode from "./utils/hooks";
+import ProgressBar from "./components/ProgressBar";
 
 function App() {
   const [file, setFile] = useState<File>();
   const [fileContent, setFileContent] = useState<string>("");
   const { debugMode, toggleDebugMode } = useDebugMode();
+  const [progress, setProgress] = useState(0);
 
   const logger = new Logger({
     updateDebugMode: (callback) => {
@@ -20,6 +22,13 @@ function App() {
     console.log("debugMode updated:", debugMode);
     logger.update();
   }, [debugMode]);
+
+  const casesExtractor = new CasesExtractor(logger);
+
+  const handleSetProgress = (progressValue: number) => {
+    setProgress(progressValue);
+    // console.log(`Progress SET: ${progressValue.toFixed(2)}%`);
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files != null) {
@@ -35,9 +44,11 @@ function App() {
 
   const handleButtonClick = () => {
     if (fileContent) {
-      const casesExtractor = new CasesExtractor(logger);
-      const result = casesExtractor.extractCasesFromText(fileContent, -1);
-      logger.log(result);
+      casesExtractor
+        .extractCasesFromText(fileContent, -1, handleSetProgress)
+        .then((cases) => {
+          console.log(cases);
+        });
     } else {
       logger.log("No file selected");
     }
@@ -46,6 +57,7 @@ function App() {
   return (
     <div className="mx-auto">
       <div className="centered-content">
+        <ProgressBar progress={progress} />
         <input type="file" onChange={handleFileChange} accept=".txt" />
         {file && <p>Selected File: {file.name}</p>}
         <Button color="primary" onClick={handleButtonClick}>

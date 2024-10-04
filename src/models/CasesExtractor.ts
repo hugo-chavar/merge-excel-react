@@ -9,30 +9,20 @@ const caseDetailsRe: RegExp = /(.*? VS .*?)\s+(\d{2}\/\d{2}\/\d{2})\s+(\S+)\s+(.
 
 class CasesExtractor {
   private logger: Logger;
-  private progressValue = 0.0;
-
-  getProgressValue() {
-    return this.progressValue;
-  }
-  
-  private progressCallback: (progress: number) => void = (progress) => {
-    // Default implementation
-    this.progressValue = progress;
-    console.log(`Progress: ${progress.toFixed(2)}%`);
-  };
-  
+ 
   constructor(logger: Logger) {
     this.logger = logger;
   }
 
-  extractCasesFromText(text: string, limit: number = 5): any[] {
+  async extractCasesFromText(text: string, limit: number = 5, onProgress: (progress: number) => void): Promise<any[]> {
     const cases: any[] = [];
 
     const [headerRaw, ...casesRaw] = text.split('0LT-');
     const header = new Header(headerRaw.split('\n').filter((line) => line.trim()));
     header.update();
 
-    this.progressCallback(0); // Initialize progress
+    let oldProgress = 0;
+    onProgress(oldProgress); // Initialize progress
 
     const loopLimit = Math.min(casesRaw.length, limit !== -1 ? limit : Infinity);
 
@@ -40,14 +30,18 @@ class CasesExtractor {
 
       const caseRaw = casesRaw[idx];
       this.logger.log("Case: ", caseRaw);
-      const caseData: any = this.processCase(caseRaw, idx, header);
 
-      cases.push(caseData);
+      cases.push(await this.processCase(caseRaw, idx, header));
 
-      this.progressCallback((idx + 1) / loopLimit * 100); // Update progress
+      let newProgress = Math.round((idx + 1) / loopLimit * 100);
+      if (newProgress > oldProgress)
+        oldProgress = newProgress;
+        onProgress(newProgress); // Update progress
+
+      await new Promise(resolve => setTimeout(resolve, 0));
     }
 
-    this.progressCallback(100); // Complete progress
+    onProgress(100); // Complete progress
 
     return cases;
   }
@@ -116,9 +110,6 @@ class CasesExtractor {
     return caseData;
   }
 
-  onProgress(callback: (progress: number) => void) {
-    this.progressCallback = callback;
-  }
 }
 
 export default CasesExtractor;

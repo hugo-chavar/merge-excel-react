@@ -14,6 +14,7 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
   const logger = new Logger({
     updateDebugMode: (callback) => {
@@ -49,14 +50,17 @@ function App() {
   const handleButtonClick = () => {
     if (fileContent) {
       setError(false);
+      setStatusMessage("Extracting cases from file");
       casesExtractor
         .extractCasesFromText(fileContent, -1, handleSetProgress)
         .then((cases) => {
           console.log(cases);
+          setStatusMessage("Cases extracted successfully");
         })
         .catch((reason) => {
           setError(true);
           setErrorMessage(reason.message);
+          setStatusMessage("Cases extraction stopped due to an error");
           logger.log(reason.message);
         });
     } else {
@@ -70,7 +74,7 @@ function App() {
   return (
     <div className="mx-auto">
       <div className="centered-content">
-        <ProgressBar progress={progress} />
+        <ProgressBar progress={progress} statusMessage={statusMessage} />
         <input type="file" onChange={handleFileChange} accept=".txt" />
         {file && <p>Selected File: {file.name}</p>}
         <Button

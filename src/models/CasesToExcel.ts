@@ -11,7 +11,9 @@ class CasesToExcel {
 
   async generateExcelFile(): Promise<buffer.Buffer> {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Cases');
+    const worksheet = workbook.addWorksheet('Cases', {
+      views: [{ state: "frozen", ySplit: 1 }],
+    });
 
     worksheet.columns = [
       { header:'Docket #', width:10 },
@@ -30,6 +32,14 @@ class CasesToExcel {
       { header:'Defendant 2 Address', width:52 },
       { header:'Defendant 2 Attorney', width:18 }
     ];
+
+    const letters = 'ABCDEFGHIJKLMNOP';
+    for (let i = 0; i < letters.length; i++) {
+      worksheet.getCell(letters[i]+'1').font = {
+        bold: true
+       };
+    }
+
 
 
     // Add cases rows

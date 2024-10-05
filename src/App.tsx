@@ -109,6 +109,7 @@ function App() {
           disabled={
             file == null ||
             extracting ||
+            error ||
             (extractedFile && file.name == extractedFile.name)
           }
         >
@@ -122,7 +123,7 @@ function App() {
         <Button
           color="primary"
           onClick={handleDownloadExcelButtonClick}
-          disabled={extractedFile == null}
+          disabled={error || extractedFile == null}
           icon={<BsFiletypeXlsx />}
         >
           Download Excel file

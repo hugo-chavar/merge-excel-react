@@ -1,5 +1,6 @@
 import * as ExcelJS from 'exceljs';
 import * as buffer from 'buffer';
+import { saveAs } from 'file-saver';
 
 class CasesToExcel {
   private cases: any[];
@@ -12,27 +13,24 @@ class CasesToExcel {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Cases');
 
-    // Define header row
-    const headerRow = [
-      'Docket #',
-      'Case Title',
-      'Case Filed',
-      'Demand Amount',
-      'Case Type',
-      'County',
-      'Plaintiff',
-      'Attorney',
-      'Firm Name',
-      'Defendant 1',
-      'Defendant 1 Address',
-      'Defendant 1 Attorney',
-      'Defendant 2',
-      'Defendant 2 Address',
-      'Defendant 2 Attorney',
+    worksheet.columns = [
+      { header:'Docket #', width:10 },
+      { header:'Case Title', width:52 },
+      { header:'Case Filed', width:10 },
+      { header:'Demand Amount', width:14 },
+      { header:'Case Type', width:14 },
+      { header:'County', width:7 },
+      { header:'Plaintiff', width:34 },
+      { header:'Attorney', width:26 },
+      { header:'Firm Name', width:29 },
+      { header:'Defendant 1', width:29 },
+      { header:'Defendant 1 Address', width:52 },
+      { header:'Defendant 1 Attorney', width:18 },
+      { header:'Defendant 2', width:29 },
+      { header:'Defendant 2 Address', width:52 },
+      { header:'Defendant 2 Attorney', width:18 }
     ];
 
-    // Add header row
-    worksheet.addRow(headerRow);
 
     // Add cases rows
     this.cases.forEach((caseItem) => {
@@ -54,24 +52,18 @@ class CasesToExcel {
         caseItem['Defendant 2 Attorney'],
       ];
       worksheet.addRow(row);
+      
     });
 
-    // Adjust column widths
-    worksheet.columns.forEach((column) => {
-        if (column.values) {
-            const maxLength = Math.max(...column.values.map((value) => String(value).length));
-            column.width = maxLength + 5;
-        } else {
-            column.width = 10; // Default width if values are empty
-        }
-    });
     const buffer = await workbook.xlsx.writeBuffer() as buffer.Buffer;
     return buffer;
   }
 
   async writeExcelFileToFileSystem(fileName: string): Promise<void> {
     const buffer = await this.generateExcelFile();
-    const fs = require('fs');
-    fs.writeFileSync(fileName, buffer);
+
+    saveAs(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
   }
 }
+
+export default CasesToExcel;

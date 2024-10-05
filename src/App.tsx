@@ -16,6 +16,7 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [cases, setCases] = useState<any[]>([]);
@@ -41,6 +42,10 @@ function App() {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files != null) {
       setError(false);
+      setSuccess(false);
+      setErrorMessage("");
+      setExtractedFile(undefined);
+      setProgress(0);
       const selectedFile = event.target.files[0];
       setExtracting(false);
       logger.log(selectedFile);
@@ -55,8 +60,6 @@ function App() {
 
   const handleSubmitFileButtonClick = () => {
     if (fileContent) {
-      setError(false);
-      setErrorMessage("");
       setExtracting(true);
       setStatusMessage("Extracting cases from file");
       console.log(file);
@@ -65,6 +68,7 @@ function App() {
         .then((extractedCases) => {
           console.log(extractedCases);
           setExtracting(false);
+          setSuccess(true);
           setCases(extractedCases);
           setExtractedFile(file);
           setStatusMessage("Cases extracted successfully");
@@ -72,6 +76,7 @@ function App() {
         .catch((reason) => {
           setError(true);
           setExtracting(false);
+          setSuccess(false);
           setErrorMessage(reason.message);
           setStatusMessage("Cases extraction stopped due to an error");
           logger.log(reason.message);
@@ -99,7 +104,12 @@ function App() {
   return (
     <div className="mx-auto">
       <div className="centered-content">
-        <ProgressBar progress={progress} statusMessage={statusMessage} />
+        <ProgressBar
+          progress={progress}
+          statusMessage={statusMessage}
+          error={error}
+          success={success}
+        />
         <input type="file" onChange={handleFileChange} accept=".txt" />
         {file && <p>Selected File: {file.name}</p>}
         <Button
@@ -123,7 +133,7 @@ function App() {
         <Button
           color="primary"
           onClick={handleDownloadExcelButtonClick}
-          disabled={error || extractedFile == null}
+          disabled={!success}
           icon={<BsFiletypeXlsx />}
         >
           Download Excel file

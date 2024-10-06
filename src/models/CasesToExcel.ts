@@ -26,7 +26,7 @@ class CasesToExcel {
       { header:'Attorney', width:26 },
       { header:'Firm Name', width:29 },
       { header:'Defendant 1', width:29 },
-      { header:'Defendant 1 Address', width:52 },
+      { header:'Defendant 1 Address', width:42 },
       { header:'Defendant 1 City', width:18 },
       { header:'Defendant 1 State', width:16 },
       { header:'Defendant 1 Zip Code', width:18 },
@@ -36,7 +36,7 @@ class CasesToExcel {
       { header:'Defendant 2 Attorney', width:18 }
     ];
 
-    const letters = 'ABCDEFGHIJKLMNOP';
+    const letters = 'ABCDEFGHIJKLMNOPQR';
     for (let i = 0; i < letters.length; i++) {
       worksheet.getCell(letters[i]+'1').font = {
         bold: true

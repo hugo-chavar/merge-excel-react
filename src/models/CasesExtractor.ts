@@ -59,16 +59,18 @@ class CasesExtractor {
       caseData['Docket #'] = docketMatch[1];
 
     else
-      throw new Error('Can not find Docket number for line: ' + firstLine);
+      throw new Error('Can not find "Docket number" for line: ' + firstLine);
 
     const caseDetailsMatch = caseDetailsRe.exec(firstLine);
     if (caseDetailsMatch) {
       caseData['Case Title'] = caseDetailsMatch[1].trim().replace(caseData['Docket #'], '').trim();
-      caseData['Case Filed'] = caseDetailsMatch[2].trim();
+      let dateParts = caseDetailsMatch[2].trim().split('/');
+      caseData['Case Filed']  = new Date(Number(dateParts[2]) + 2000, Number(dateParts[0]) - 1, Number(dateParts[1]));
       caseData['Demand Amount'] = parseFloat("0" + caseDetailsMatch[3].trim());
       caseData['Case Type'] = caseDetailsMatch[4].trim();
     } else {
       this.logger.log(`\nCase ${idx}: No match for ${JSON.stringify(caseRaw)}`);
+      throw new Error('Can not find "Case Title" for line: ' + firstLine);
     }
 
     const iterator = new SectionIterator(caseRaw, header, this.logger);

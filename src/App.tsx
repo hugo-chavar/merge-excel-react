@@ -156,10 +156,13 @@ function App() {
           </div>
           <div className="col-2">
             <DebugModeToggle
-              debugMode={debugMode}
+              checked={debugMode}
               disabled={extracting}
-              toggleDebugMode={toggleDebugMode}
-            />
+              onChange={toggleDebugMode}
+              name={"debug"}
+            >
+              Enable Debug Mode
+            </DebugModeToggle>
           </div>
         </div>
 
@@ -178,7 +181,9 @@ function App() {
 
         <div className="row text-center p-2">
           {error && (
-            <div className="text-bg-danger p-3">ERROR: {errorMessage}</div>
+            <div className="text-bg-danger p-3">
+              The input file has some problems. ERROR: {errorMessage}
+            </div>
           )}
         </div>
       </div>

@@ -13,10 +13,11 @@ const ProgressBar = ({ progress, statusMessage, success, error }: Props) => {
       <div
         className="progress"
         role="progressbar"
-        aria-label="Info example"
+        aria-label="Cases progress"
         aria-valuenow={progress}
         aria-valuemin={0}
         aria-valuemax={100}
+        style={{ height: "20px" }}
       >
         <div
           className={"progress-bar text-bg-" + mode}

@@ -91,11 +91,23 @@ function App() {
     }
   };
 
+  const getExcelFileName = () => {
+    if (!file) return "result.xlsx";
+
+    const filenameParts = file.name.split(".");
+
+    const filenameWithoutExtension = filenameParts.slice(0, -1).join(".");
+
+    return `${filenameWithoutExtension}.xlsx`;
+  };
+
   const handleDownloadExcelButtonClick = () => {
     setStatusMessage("Generating Excel file");
     const casesToExcel = new CasesToExcel(cases);
-    setStatusMessage("Downloading Excel File");
-    casesToExcel.writeExcelFileToFileSystem("test.xlsx").then(() => {
+    const excelFilename = getExcelFileName();
+    setStatusMessage("Downloading Excel File: " + excelFilename);
+
+    casesToExcel.writeExcelFileToFileSystem(excelFilename).then(() => {
       let message = "Excel file was saved";
       logger.log(message);
       setStatusMessage(message);

@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { BsFiletypeXlsx, BsFiletypeTxt } from "react-icons/bs";
 import Button from "./components/Button";
-import DebugModeToggle from "./components/DebugModeToggle";
+import Toggle from "./components/Toggle";
 import CasesExtractor from "./models/CasesExtractor";
 import CasesToExcel from "./models/CasesToExcel";
 import Logger from "./utils/logger";
@@ -155,14 +155,14 @@ function App() {
             />
           </div>
           <div className="col-2">
-            <DebugModeToggle
+            <Toggle
               checked={debugMode}
               disabled={extracting}
               onChange={toggleDebugMode}
               name={"debug"}
             >
               Enable Debug Mode
-            </DebugModeToggle>
+            </Toggle>
           </div>
         </div>
 

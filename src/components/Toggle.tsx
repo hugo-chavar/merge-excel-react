@@ -8,13 +8,7 @@ interface Props {
   children: string;
 }
 
-function DebugModeToggle({
-  children,
-  checked,
-  disabled,
-  onChange,
-  name,
-}: Props) {
+function Toggle({ children, checked, disabled, onChange, name }: Props) {
   useEffect(() => {
     // Force re-render when debugMode changes
     if (checked) console.log(`${name} enabled`);
@@ -38,4 +32,4 @@ function DebugModeToggle({
   );
 }
 
-export default DebugModeToggle;
+export default Toggle;

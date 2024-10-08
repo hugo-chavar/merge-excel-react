@@ -40,10 +40,11 @@ function App() {
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files != null) {
+    if (event.target.files != null && event.target.files.length > 0) {
       setError(false);
       setSuccess(false);
       setErrorMessage("");
+      setStatusMessage("Waiting for file to be submitted");
       setExtractedFile(undefined);
       setProgress(0);
       const selectedFile = event.target.files[0];
@@ -64,7 +65,7 @@ function App() {
       setStatusMessage("Extracting cases from file");
       console.log(file);
       casesExtractor
-        .extractCasesFromText(fileContent, 150, handleSetProgress)
+        .extractCasesFromText(fileContent, -1, handleSetProgress)
         .then((extractedCases) => {
           console.log(extractedCases);
           setExtracting(false);
@@ -102,42 +103,72 @@ function App() {
   };
 
   return (
-    <div className="mx-auto">
-      <div className="centered-content">
-        <ProgressBar
-          progress={progress}
-          statusMessage={statusMessage}
-          error={error}
-          success={success}
-        />
-        <input type="file" onChange={handleFileChange} accept=".txt" />
-        {file && <p>Selected File: {file.name}</p>}
-        <Button
-          color="primary"
-          onClick={handleSubmitFileButtonClick}
-          icon={<BsFiletypeTxt />}
-          disabled={
-            file == null ||
-            extracting ||
-            error ||
-            (extractedFile && file.name == extractedFile.name)
-          }
-        >
-          Submit file
-        </Button>
-        {error && <p>ERROR: {errorMessage}</p>}
-        <DebugModeToggle
-          debugMode={debugMode}
-          toggleDebugMode={toggleDebugMode}
-        />
-        <Button
-          color="primary"
-          onClick={handleDownloadExcelButtonClick}
-          disabled={!success}
-          icon={<BsFiletypeXlsx />}
-        >
-          Download Excel file
-        </Button>
+    <div className="container-sm">
+      <div className="grid gap-2 row-gap-5">
+        <div className="mb-3">
+          <label htmlFor="formFile" className="form-label">
+            Please choose the text input file
+          </label>
+          <input
+            className="form-control"
+            type="file"
+            onChange={handleFileChange}
+            accept=".txt"
+            id="formFile"
+            disabled={extracting}
+          />
+        </div>
+        <div className="row text-center p-2">
+          <div className="col-2">
+            <Button
+              color="primary"
+              onClick={handleSubmitFileButtonClick}
+              icon={<BsFiletypeTxt />}
+              disabled={
+                file == null ||
+                extracting ||
+                error ||
+                (extractedFile && file.name == extractedFile.name)
+              }
+            >
+              Submit file
+            </Button>
+          </div>
+          <div className="col-8">
+            <ProgressBar
+              progress={progress}
+              statusMessage={statusMessage}
+              error={error}
+              success={success}
+            />
+          </div>
+          <div className="col-2">
+            <DebugModeToggle
+              debugMode={debugMode}
+              disabled={extracting}
+              toggleDebugMode={toggleDebugMode}
+            />
+          </div>
+        </div>
+
+        <div className="row text-center p-2">
+          <div className="col">
+            <Button
+              color="primary"
+              onClick={handleDownloadExcelButtonClick}
+              disabled={!success}
+              icon={<BsFiletypeXlsx />}
+            >
+              Download Excel file
+            </Button>
+          </div>
+        </div>
+
+        <div className="row text-center p-2">
+          {error && (
+            <div className="text-bg-danger p-3">ERROR: {errorMessage}</div>
+          )}
+        </div>
       </div>
     </div>
   );

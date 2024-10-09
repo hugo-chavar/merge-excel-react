@@ -20,6 +20,14 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [cases, setCases] = useState<any[]>([]);
+  const [limitCases, setLimitCases] = useState(false);
+  const [casesToProcess, setCasesToProcess] = useState(100);
+  const [processedCases, setProcessedCases] = useState(-1);
+  const [parameterCasesToProcess, setParameterCasesToProcess] = useState(-1);
+
+  const handleOnLimitChange = () => {
+    setLimitCases(!limitCases);
+  };
 
   const logger = new Logger({
     updateDebugMode: (callback) => {
@@ -59,13 +67,22 @@ function App() {
     }
   };
 
+  const getCasesToProcess = () => {
+    return limitCases ? casesToProcess : -1;
+  };
+
   const handleSubmitFileButtonClick = () => {
     if (fileContent) {
       setExtracting(true);
+      setSuccess(false);
       setStatusMessage("Extracting cases from file");
       console.log(file);
       casesExtractor
-        .extractCasesFromText(fileContent, -1, handleSetProgress)
+        .extractCasesFromText(
+          fileContent,
+          getCasesToProcess(),
+          handleSetProgress
+        )
         .then((extractedCases) => {
           console.log(extractedCases);
           setExtracting(false);
@@ -73,12 +90,15 @@ function App() {
           setCases(extractedCases);
           setExtractedFile(file);
           setStatusMessage("Cases extracted successfully");
+          setProcessedCases(extractedCases.length);
+          setParameterCasesToProcess(getCasesToProcess());
         })
         .catch((reason) => {
           setError(true);
           setExtracting(false);
           setSuccess(false);
           setErrorMessage(reason.message);
+          setProcessedCases(-2);
           setStatusMessage("Cases extraction stopped due to an error");
           logger.log(reason.message);
         });
@@ -116,6 +136,8 @@ function App() {
 
   return (
     <div className="container-sm">
+      <h1 className="display-2">Cases to Excel</h1>
+      <hr className="border border-primary border-3 opacity-75"></hr>
       <div className="grid gap-2 row-gap-5">
         <div className="mb-3">
           <label htmlFor="formFile" className="form-label">
@@ -131,30 +153,7 @@ function App() {
           />
         </div>
         <div className="row text-center p-2">
-          <div className="col-2">
-            <Button
-              color="primary"
-              onClick={handleSubmitFileButtonClick}
-              icon={<BsFiletypeTxt />}
-              disabled={
-                file == null ||
-                extracting ||
-                error ||
-                (extractedFile && file.name == extractedFile.name)
-              }
-            >
-              Submit file
-            </Button>
-          </div>
-          <div className="col-8">
-            <ProgressBar
-              progress={progress}
-              statusMessage={statusMessage}
-              error={error}
-              success={success}
-            />
-          </div>
-          <div className="col-2">
+          <div className="col-4">
             <Toggle
               checked={debugMode}
               disabled={extracting}
@@ -163,6 +162,58 @@ function App() {
             >
               Enable Debug Mode
             </Toggle>
+          </div>
+          <div className="col-4">
+            <Toggle
+              checked={limitCases}
+              disabled={extracting}
+              onChange={handleOnLimitChange}
+              name={"limit"}
+            >
+              Process only the first:
+            </Toggle>
+          </div>
+          <div className="col-2">
+            <input
+              type="number"
+              className="form-control"
+              aria-label="Number input"
+              min={0}
+              max={99999}
+              onChange={(e) => {
+                setCasesToProcess(+e.target.value);
+              }}
+              defaultValue={limitCases ? 100 : ""}
+              disabled={!limitCases}
+            />
+          </div>
+          <div className="col-1">cases</div>
+        </div>
+        <div className="row text-center p-2">
+          <div className="col-3">
+            <Button
+              color="primary"
+              onClick={handleSubmitFileButtonClick}
+              icon={<BsFiletypeTxt />}
+              disabled={
+                file == null ||
+                extracting ||
+                error ||
+                (extractedFile &&
+                  file.name == extractedFile.name &&
+                  parameterCasesToProcess == getCasesToProcess())
+              }
+            >
+              Submit file
+            </Button>
+          </div>
+          <div className="col-9">
+            <ProgressBar
+              progress={progress}
+              statusMessage={statusMessage}
+              error={error}
+              success={success}
+            />
           </div>
         </div>
 
@@ -174,7 +225,9 @@ function App() {
               disabled={!success}
               icon={<BsFiletypeXlsx />}
             >
-              Download Excel file
+              {`Download Excel file ${
+                success ? "(" + processedCases + " cases)" : ""
+              }`}
             </Button>
           </div>
         </div>

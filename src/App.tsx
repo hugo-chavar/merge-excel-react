@@ -76,7 +76,7 @@ function App() {
       setExtracting(true);
       setSuccess(false);
       setStatusMessage("Extracting cases from file");
-      console.log(file);
+      // console.log(file);
       casesExtractor
         .extractCasesFromText(
           fileContent,
@@ -84,7 +84,7 @@ function App() {
           handleSetProgress
         )
         .then((extractedCases) => {
-          console.log(extractedCases);
+          // console.log(extractedCases);
           setExtracting(false);
           setSuccess(true);
           setCases(extractedCases);

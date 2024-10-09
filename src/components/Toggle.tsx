@@ -18,7 +18,7 @@ function Toggle({ children, checked, disabled, onChange, name }: Props) {
   return (
     <div className="form-check">
       <input
-        className="form-check-input"
+        className="form-check-input border-2 border-primary"
         type="checkbox"
         checked={checked}
         onChange={onChange}

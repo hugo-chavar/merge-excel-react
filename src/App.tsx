@@ -1,33 +1,24 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { BsFiletypeXlsx, BsFiletypeTxt } from "react-icons/bs";
+import { BsFiletypeXlsx } from "react-icons/bs";
 import Button from "./components/Button";
 import Toggle from "./components/Toggle";
-import CasesExtractor from "./models/CasesExtractor";
 import CasesToExcel from "./models/CasesToExcel";
+import ExcelToCases from "./models/ExcelToCases";
 import Logger from "./utils/logger";
 import useDebugMode from "./utils/hooks";
-import ProgressBar from "./components/ProgressBar";
 
 function App() {
-  const [file, setFile] = useState<File>();
-  const [extractedFile, setExtractedFile] = useState<File>();
-  const [fileContent, setFileContent] = useState<string>("");
   const { debugMode, toggleDebugMode } = useDebugMode();
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [cases, setCases] = useState<any[]>([]);
-  const [limitCases, setLimitCases] = useState(false);
-  const [casesToProcess, setCasesToProcess] = useState(100);
-  const [processedCases, setProcessedCases] = useState(-1);
-  const [parameterCasesToProcess, setParameterCasesToProcess] = useState(-1);
 
-  const handleOnLimitChange = () => {
-    setLimitCases(!limitCases);
-  };
+  const [processedCases, setProcessedCases] = useState(-1);
+  const [firstExcelFile, setFirstExcelFile] = useState<File>();
+  const [secondExcelFile, setSecondExcelFile] = useState<File>();
 
   const logger = new Logger({
     updateDebugMode: (callback) => {
@@ -36,62 +27,61 @@ function App() {
   });
 
   useEffect(() => {
-    console.log("debugMode updated:", debugMode);
+    // console.log("debugMode updated:", debugMode);
     logger.update();
   }, [debugMode]);
 
-  const casesExtractor = new CasesExtractor(logger);
-
-  const handleSetProgress = (progressValue: number) => {
-    setProgress(progressValue);
-    // console.log(`Progress SET: ${progressValue.toFixed(2)}%`);
-  };
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const getSelectedFile = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files != null && event.target.files.length > 0) {
       setError(false);
       setSuccess(false);
       setErrorMessage("");
       setStatusMessage("Waiting for file to be submitted");
-      setExtractedFile(undefined);
-      setProgress(0);
-      const selectedFile = event.target.files[0];
       setExtracting(false);
+
+      return event.target.files[0];
+    }
+    return null;
+  };
+
+  const handleFirstExcelFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = getSelectedFile(event);
+    if (selectedFile) {
       logger.log(selectedFile);
-      setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target != null) setFileContent(e.target.result as string);
-      };
-      reader.readAsText(selectedFile);
+      setFirstExcelFile(selectedFile);
     }
   };
 
-  const getCasesToProcess = () => {
-    return limitCases ? casesToProcess : -1;
+  const handleSecondExcelFileChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const selectedFile = getSelectedFile(event);
+    if (selectedFile) {
+      logger.log(selectedFile);
+      setSecondExcelFile(selectedFile);
+    }
   };
 
-  const handleSubmitFileButtonClick = () => {
-    if (fileContent) {
+  const handleSubmitExcelFilesButtonClick = () => {
+    if (firstExcelFile && secondExcelFile) {
       setExtracting(true);
       setSuccess(false);
-      setStatusMessage("Extracting cases from file");
+      setStatusMessage("Loading data from first excel file");
       // console.log(file);
-      casesExtractor
-        .extractCasesFromText(
-          fileContent,
-          getCasesToProcess(),
-          handleSetProgress
-        )
+      const firstExcelPromise: Promise<any[]> =
+        ExcelToCases.readExcelFile(firstExcelFile);
+      const secondExcelPromise: Promise<any[]> =
+        ExcelToCases.readExcelFile(secondExcelFile);
+      Promise.all([firstExcelPromise, secondExcelPromise])
         .then((extractedCases) => {
-          // console.log(extractedCases);
+          console.log(extractedCases);
           setExtracting(false);
           setSuccess(true);
-          setCases(extractedCases);
-          setExtractedFile(file);
-          setStatusMessage("Cases extracted successfully");
-          setProcessedCases(extractedCases.length);
-          setParameterCasesToProcess(getCasesToProcess());
+          const allCases = extractedCases[0].concat(extractedCases[1]);
+          setCases(allCases);
+          setProcessedCases(allCases.length);
+
+          setStatusMessage("First excel file loaded successfully");
         })
         .catch((reason) => {
           setError(true);
@@ -112,17 +102,13 @@ function App() {
   };
 
   const getExcelFileName = () => {
-    if (!file) return "result.xlsx";
-
-    const filenameParts = file.name.split(".");
-
-    const filenameWithoutExtension = filenameParts.slice(0, -1).join(".");
-
-    return `${filenameWithoutExtension}.xlsx`;
+    return "result.xlsx";
   };
 
   const handleDownloadExcelButtonClick = () => {
     setStatusMessage("Generating Excel file");
+    console.log("Generating Excel file");
+    console.log(cases);
     const casesToExcel = new CasesToExcel(cases);
     const excelFilename = getExcelFileName();
     setStatusMessage("Downloading Excel File: " + excelFilename);
@@ -136,22 +122,9 @@ function App() {
 
   return (
     <div className="container-sm">
-      <h1 className="display-2">Cases to Excel</h1>
+      <h1 className="display-2">Merge Excel files</h1>
       <hr className="border border-primary border-3 opacity-75"></hr>
       <div className="grid gap-2 row-gap-5">
-        <div className="mb-3">
-          <label htmlFor="formFile" className="form-label">
-            Please choose the text input file
-          </label>
-          <input
-            className="form-control"
-            type="file"
-            onChange={handleFileChange}
-            accept=".txt"
-            id="formFile"
-            disabled={extracting}
-          />
-        </div>
         <div className="row text-center p-2">
           <div className="col-4">
             <Toggle
@@ -163,62 +136,54 @@ function App() {
               Enable Debug Mode
             </Toggle>
           </div>
-          <div className="col-4">
-            <Toggle
-              checked={limitCases}
-              disabled={extracting}
-              onChange={handleOnLimitChange}
-              name={"limit"}
-            >
-              Process only the first:
-            </Toggle>
-          </div>
-          <div className="col-2">
-            <input
-              type="number"
-              className="form-control"
-              aria-label="Number input"
-              min={0}
-              max={99999}
-              onChange={(e) => {
-                setCasesToProcess(+e.target.value);
-              }}
-              defaultValue={limitCases ? 100 : ""}
-              disabled={!limitCases}
-            />
-          </div>
-          <div className="col-1">cases</div>
-        </div>
-        <div className="row text-center p-2">
-          <div className="col-3">
-            <Button
-              color="primary"
-              onClick={handleSubmitFileButtonClick}
-              icon={<BsFiletypeTxt />}
-              disabled={
-                file == null ||
-                extracting ||
-                error ||
-                (extractedFile &&
-                  file.name == extractedFile.name &&
-                  parameterCasesToProcess == getCasesToProcess())
-              }
-            >
-              Submit file
-            </Button>
-          </div>
-          <div className="col-9">
-            <ProgressBar
-              progress={progress}
-              statusMessage={statusMessage}
-              error={error}
-              success={success}
-            />
-          </div>
         </div>
 
         <div className="row text-center p-2">
-          <div className="col">
+          <label htmlFor="formFile" className="form-label">
+            Please choose the first excel file
+          </label>
+          <input
+            className="form-control"
+            type="file"
+            onChange={handleFirstExcelFileChange}
+            accept=".xlsx"
+            id="formFile"
+            disabled={extracting}
+          />
+        </div>
+
+        <div className="row text-center p-2">
+          <label htmlFor="formFile" className="form-label">
+            Please choose the second excel file
+          </label>
+          <input
+            className="form-control"
+            type="file"
+            onChange={handleSecondExcelFileChange}
+            accept=".xlsx"
+            id="formFile"
+            disabled={extracting}
+          />
+        </div>
+
+        <div className="row text-center p-2">
+          <div className="col-5">
+            <Button
+              color="primary"
+              onClick={handleSubmitExcelFilesButtonClick}
+              icon={<BsFiletypeXlsx />}
+              disabled={
+                firstExcelFile == null ||
+                secondExcelFile == null ||
+                extracting ||
+                error ||
+                success
+              }
+            >
+              Submit Excel files
+            </Button>
+          </div>
+          <div className="col-5">
             <Button
               color="primary"
               onClick={handleDownloadExcelButtonClick}
@@ -226,7 +191,7 @@ function App() {
               icon={<BsFiletypeXlsx />}
             >
               {`Download Excel file ${
-                success ? "(" + processedCases + " cases)" : ""
+                success ? "(" + processedCases + " rows)" : ""
               }`}
             </Button>
           </div>
